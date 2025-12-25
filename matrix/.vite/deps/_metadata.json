@@ -1,0 +1,90 @@
+{
+  "hash": "57d8c934",
+  "configHash": "b90d1acf",
+  "lockfileHash": "77185ee4",
+  "browserHash": "19b7f07a",
+  "optimized": {
+    "@tanstack/react-query": {
+      "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "87570b86",
+      "needsInterop": false
+    },
+    "antd": {
+      "src": "../../node_modules/antd/es/index.js",
+      "file": "antd.js",
+      "fileHash": "f5c7b965",
+      "needsInterop": false
+    },
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "af87eae8",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "79fc51cf",
+      "needsInterop": false
+    },
+    "mobx-react-lite": {
+      "src": "../../node_modules/mobx-react-lite/es/index.js",
+      "file": "mobx-react-lite.js",
+      "fileHash": "cb42de11",
+      "needsInterop": false
+    },
+    "mobx": {
+      "src": "../../node_modules/mobx/dist/mobx.esm.js",
+      "file": "mobx.js",
+      "fileHash": "ad7f40ac",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "7c02ad72",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "719664cc",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "b613a3da",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "a9490772",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-DUEDWNxO": {
+      "file": "chunk-DUEDWNxO.js",
+      "isDynamicEntry": false
+    },
+    "client-Cz5Bl72S": {
+      "file": "client-Cz5Bl72S.js",
+      "isDynamicEntry": false
+    },
+    "mobx.esm-BloO_sOI": {
+      "file": "mobx.esm-BloO_sOI.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-BejBLmt5": {
+      "file": "react-dom-BejBLmt5.js",
+      "isDynamicEntry": false
+    },
+    "react-x9Y-BYRK": {
+      "file": "react-x9Y-BYRK.js",
+      "isDynamicEntry": false
+    }
+  }
+}

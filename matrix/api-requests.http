@@ -1,0 +1,164 @@
+@baseUrl = http://localhost:3000
+@api = {{baseUrl}}/api
+
+# Set this after login/register:
+@token = YOUR_JWT_TOKEN_HERE
+
+# Common IDs (replace with real ones)
+@courseId = COURSE_ID_HERE
+@lessonId = LESSON_ID_HERE
+@categoryId = CATEGORY_ID_HERE
+
+############################################################
+# Health
+############################################################
+
+### GET /api/health
+GET {{api}}/health
+
+############################################################
+# Auth
+############################################################
+
+### POST /api/auth/register
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "student@example.com",
+  "password": "Password123!",
+  "name": "Student Name"
+}
+
+### POST /api/auth/login
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@example.com",
+  "password": "Password123!"
+}
+
+############################################################
+# Users (JWT required)
+############################################################
+
+### PATCH /api/users/me (update profile)
+PATCH {{api}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "student_new@example.com",
+  "name": "Student New Name"
+}
+
+### POST /api/users/me/change-password
+POST {{api}}/users/me/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "oldPassword": "Password123!",
+  "newPassword": "NewPassword123!"
+}
+
+### PATCH /api/users/me/avatar (multipart upload)
+# NOTE: Many HTTP clients don’t support multipart well in .http files.
+# Use curl:
+# curl -X PATCH "{{api}}/users/me/avatar" \
+#   -H "Authorization: Bearer {{token}}" \
+#   -F "avatar=@/absolute/path/to/avatar.png"
+
+############################################################
+# Courses - Catalog
+############################################################
+
+### GET /api/courses (defaults: page=1, limit=10)
+GET {{api}}/courses
+
+### GET /api/courses?page=1&limit=10&search=react&categoryId=...
+GET {{api}}/courses?page=1&limit=10&search=react&categoryId={{categoryId}}
+
+############################################################
+# Courses - Single course (optional auth)
+############################################################
+
+### GET /api/courses/:id (guest)
+GET {{api}}/courses/{{courseId}}
+
+### GET /api/courses/:id (logged in - adds hasPurchased + progress)
+GET {{api}}/courses/{{courseId}}
+Authorization: Bearer {{token}}
+
+############################################################
+# Checkout (JWT required)
+############################################################
+
+### POST /api/checkout/create-session
+POST {{api}}/checkout/create-session
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "courseId": "{{courseId}}"
+}
+
+############################################################
+# Progress (JWT + must own course)
+############################################################
+
+### PUT /api/courses/:courseId/lessons/:lessonId/progress
+PUT {{api}}/courses/{{courseId}}/lessons/{{lessonId}}/progress
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isCompleted": true
+}
+
+### GET /api/courses/:courseId/progress
+GET {{api}}/courses/{{courseId}}/progress
+Authorization: Bearer {{token}}
+
+############################################################
+# Lessons (JWT + must own course)
+############################################################
+
+### GET /api/lessons/:id
+GET {{api}}/lessons/{{lessonId}}
+Authorization: Bearer {{token}}
+
+############################################################
+# Stripe Webhook (raw body)
+############################################################
+
+### POST /api/webhook (Stripe sends this)
+# Stripe requires a raw body and a valid Stripe-Signature header.
+# This is a TEMPLATE ONLY (you can’t fake signature verification without Stripe tooling).
+POST {{api}}/webhook
+Content-Type: application/json
+Stripe-Signature: t=REPLACE_WITH_TIMESTAMP,v1=REPLACE_WITH_SIGNATURE
+
+{
+  "id": "evt_example",
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_example",
+      "metadata": {
+        "userId": "USER_ID_HERE",
+        "courseId": "{{courseId}}"
+      }
+    }
+  }
+}
+
+############################################################
+# Static uploads
+############################################################
+
+### GET /uploads/<filename> (example)
+GET {{baseUrl}}/uploads/REPLACE_WITH_FILENAME.jpg
+
+
