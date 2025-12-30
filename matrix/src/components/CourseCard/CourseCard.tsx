@@ -57,7 +57,7 @@ const CourseCard = ({ course, isDark }: { course: Course; isDark: boolean }) => 
         <div className="flex items-center gap-1.5 mb-3">
           <User className={`w-3.5 h-3.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
           <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {course.instructor}
+            {typeof course.instructor === 'string' ? course.instructor : course.instructor?.name || 'Unknown Instructor'}
           </span>
         </div>
 

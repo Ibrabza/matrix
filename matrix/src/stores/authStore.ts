@@ -63,6 +63,7 @@ class AuthStore {
 
   // Login action
   async login(email: string, password: string): Promise<boolean> {
+    console.log('🔐 [AuthStore] Starting login...', { email });
     this.isLoading = true;
     this.error = null;
 
@@ -70,16 +71,30 @@ class AuthStore {
       const payload: LoginRequest = { email, password };
       const response = await apiClient.post<AuthResponse>('/auth/login', payload);
 
+      console.log('✅ [AuthStore] Login response received:', response.data);
+
+      // Response is already unwrapped by interceptor
+      // Backend sends { token, user } and interceptor unwraps it
+      const token = response.data.token;
+      const user = response.data.user;
+
+      console.log('🎫 [AuthStore] Token extracted:', token ? '✓ Token exists' : '✗ No token');
+      console.log('👤 [AuthStore] User extracted:', user);
+
       runInAction(() => {
-        this.token = response.data.accessToken;
-        this.user = response.data.user;
+        this.token = token;
+        this.user = user;
         this.isLoading = false;
       });
 
       // Save token to localStorage
-      setAuthToken(response.data.accessToken);
+      setAuthToken(token);
+      console.log('💾 [AuthStore] Token saved to localStorage');
+      console.log('✅ [AuthStore] Login successful, isAuthenticated:', this.isAuthenticated);
+      
       return true;
     } catch (error) {
+      console.error('❌ [AuthStore] Login failed:', error);
       runInAction(() => {
         this.isLoading = false;
         this.error = error instanceof Error ? error.message : 'Login failed';
@@ -90,12 +105,15 @@ class AuthStore {
 
   // Register action
   async register(email: string, password: string, name: string): Promise<boolean> {
+    console.log('📝 [AuthStore] Starting registration...', { email, name });
     this.isLoading = true;
     this.error = null;
 
     try {
       const payload: RegisterRequest = { email, password, name };
-      await apiClient.post<AuthResponse>('/auth/register', payload);
+      const response = await apiClient.post<AuthResponse>('/auth/register', payload);
+
+      console.log('✅ [AuthStore] Registration response received:', response.data);
 
       // Auto-login after registration
       runInAction(() => {
@@ -104,6 +122,7 @@ class AuthStore {
 
       return await this.login(email, password);
     } catch (error) {
+      console.error('❌ [AuthStore] Registration failed:', error);
       runInAction(() => {
         this.isLoading = false;
         this.error = error instanceof Error ? error.message : 'Registration failed';

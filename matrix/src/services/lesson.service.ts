@@ -20,10 +20,25 @@ const lessonApi = {
     lessonId: string;
     data: UpdateProgressRequest;
   }): Promise<void> => {
-    await apiClient.put(
-      `/courses/${params.courseId}/lessons/${params.lessonId}/progress`,
-      params.data
-    );
+    console.log('✏️ [Frontend] Updating lesson progress', {
+      courseId: params.courseId,
+      lessonId: params.lessonId,
+      data: params.data
+    });
+    try {
+      await apiClient.put(
+        `/courses/${params.courseId}/lessons/${params.lessonId}/progress`,
+        params.data
+      );
+      console.log('✅ [Frontend] Lesson progress updated successfully');
+    } catch (error) {
+      console.error('❌ [Frontend] Failed to update lesson progress', {
+        courseId: params.courseId,
+        lessonId: params.lessonId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
   },
 };
 

@@ -73,7 +73,7 @@ const CatalogCourseCard = ({ course, isDark }: { course: Course; isDark: boolean
 
           {/* Instructor */}
           <p className={`text-sm mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            by {course.instructor}
+            by {typeof course.instructor === 'string' ? course.instructor : course.instructor?.name || 'Unknown Instructor'}
           </p>
 
           {/* Description */}

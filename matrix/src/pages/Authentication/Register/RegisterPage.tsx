@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { Mail, Lock, Eye, EyeOff, User, AlertCircle } from 'lucide-react';
 import AuthLayout from '../../../components/auth/AuthLayout';
@@ -14,6 +14,7 @@ interface FormErrors {
 
 const RegisterPage = observer(() => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { authStore } = useStore();
 
   const [name, setName] = useState('');
@@ -24,6 +25,12 @@ const RegisterPage = observer(() => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  // Get the redirect path from location state (set by purchase flow or AuthGuard)
+  const fromState = location.state as { from?: { pathname: string } };
+  const from = fromState?.from?.pathname || '/dashboard';
+  
+  console.log('🔍 [RegisterPage] Redirect target after registration:', { from, state: location.state });
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -83,17 +90,28 @@ const RegisterPage = observer(() => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    console.log('📋 [RegisterPage] Form submitted');
+
+    if (!validateForm()) {
+      console.log('❌ [RegisterPage] Form validation failed');
+      return;
+    }
 
     // Clear any previous auth errors
     authStore.clearError();
 
+    console.log('🚀 [RegisterPage] Calling authStore.register...');
     // Call MobX store register action (auto-login is handled in the store)
     const success = await authStore.register(email, password, name);
 
+    console.log('🔍 [RegisterPage] Register result:', { success, isAuthenticated: authStore.isAuthenticated });
+
     if (success) {
-      // Redirect to dashboard after successful registration + auto-login
-      navigate('/dashboard', { replace: true });
+      console.log('✅ [RegisterPage] Registration & login successful! Redirecting to:', from);
+      // Redirect to the page user tried to access, or dashboard
+      navigate(from, { replace: true });
+    } else {
+      console.error('❌ [RegisterPage] Registration failed, staying on register page');
     }
     // Error is handled by authStore.error observable
   };

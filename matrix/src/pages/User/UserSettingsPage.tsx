@@ -23,7 +23,7 @@ interface UserCourse {
   id: string;
   title: string;
   description: string;
-  instructor: string;
+  instructor: string | { name: string | null };
   thumbnailUrl: string;
   category: string;
   totalLessons: number;
@@ -154,7 +154,7 @@ const CourseProgressCard = ({
                   {course.title}
                 </h3>
                 <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {course.instructor}
+                  {typeof course.instructor === 'string' ? course.instructor : course.instructor?.name || 'Unknown Instructor'}
                 </p>
               </div>
               {isCompleted ? (

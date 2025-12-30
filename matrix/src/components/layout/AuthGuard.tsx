@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../stores';
-import { Spin } from 'antd';
 import { Loader2 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -136,7 +135,12 @@ const AuthGuard = observer(({
     // If user is authenticated, redirect away from login/register
     if (isAuthenticated) {
       // Check if there's a redirect URL in location state
-      const from = (location.state as { from?: Location })?.from?.pathname || guestRedirectTo;
+      const fromState = location.state as { from?: { pathname: string } };
+      const from = fromState?.from?.pathname || guestRedirectTo;
+      
+      console.log('🔄 [AuthGuard] User authenticated on guest page, redirecting to:', from);
+      console.log('🔍 [AuthGuard] Location state:', location.state);
+      
       return <Navigate to={from} replace />;
     }
     // User is guest, show the page

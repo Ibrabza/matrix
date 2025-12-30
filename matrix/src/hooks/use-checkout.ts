@@ -27,14 +27,23 @@ export interface CheckoutResponse {
  * @returns Checkout session with Stripe redirect URL
  */
 export const buyCourse = async (courseId: string): Promise<CheckoutResponse> => {
-  const response = await apiClient.post<CheckoutSession>('/checkout/create-session', {
-    courseId,
-  });
+  console.log('🛒 [buyCourse] Creating checkout session', { courseId });
+  
+  try {
+    const response = await apiClient.post<CheckoutSession>('/checkout/create-session', {
+      courseId,
+    });
 
-  return {
-    url: response.data.url,
-    sessionId: response.data.sessionId,
-  };
+    console.log('✅ [buyCourse] Checkout session created', response.data);
+
+    return {
+      url: response.data.url,
+      sessionId: response.data.sessionId,
+    };
+  } catch (error) {
+    console.error('❌ [buyCourse] Failed to create checkout session:', error);
+    throw error;
+  }
 };
 
 // ============================================
@@ -68,10 +77,18 @@ export const useBuyCourse = () => {
   return useMutation({
     mutationFn: buyCourse,
     onSuccess: (data) => {
+      console.log('✅ [useBuyCourse] Checkout session created', { url: data.url });
+      
       // Redirect to Stripe checkout page
       if (data.url) {
+        console.log('🔄 [useBuyCourse] Redirecting to Stripe checkout:', data.url);
         window.location.href = data.url;
+      } else {
+        console.error('❌ [useBuyCourse] No checkout URL returned from backend');
       }
+    },
+    onError: (error) => {
+      console.error('❌ [useBuyCourse] Checkout session creation failed:', error);
     },
   });
 };

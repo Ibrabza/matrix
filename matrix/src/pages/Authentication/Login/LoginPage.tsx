@@ -21,8 +21,11 @@ const LoginPage = observer(() => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Get the redirect path from location state (set by AuthGuard)
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
+  // Get the redirect path from location state (set by purchase flow or AuthGuard)
+  const fromState = location.state as { from?: { pathname: string } };
+  const from = fromState?.from?.pathname || '/dashboard';
+  
+  console.log('🔍 [LoginPage] Redirect target after login:', { from, state: location.state });
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,17 +54,28 @@ const LoginPage = observer(() => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    console.log('📋 [LoginPage] Form submitted');
+
+    if (!validateForm()) {
+      console.log('❌ [LoginPage] Form validation failed');
+      return;
+    }
 
     // Clear any previous auth errors
     authStore.clearError();
 
+    console.log('🚀 [LoginPage] Calling authStore.login...');
     // Call MobX store login action
     const success = await authStore.login(email, password);
 
+    console.log('🔍 [LoginPage] Login result:', { success, isAuthenticated: authStore.isAuthenticated });
+
     if (success) {
+      console.log('✅ [LoginPage] Login successful! Redirecting to:', from);
       // Redirect to the page user tried to access, or dashboard
       navigate(from, { replace: true });
+    } else {
+      console.error('❌ [LoginPage] Login failed, staying on login page');
     }
     // Error is handled by authStore.error observable
   };

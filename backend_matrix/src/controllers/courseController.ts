@@ -72,6 +72,8 @@ export async function getCourseById(req: Request, res: Response) {
 
   const userId = req.user?.id;
 
+  console.log("📚 [Course Details] Fetching course", { courseId, userId: userId || "guest" });
+
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     select: {
@@ -90,7 +92,10 @@ export async function getCourseById(req: Request, res: Response) {
     },
   });
 
-  if (!course) return sendFailure(res, 404, "Course not found");
+  if (!course) {
+    console.error("❌ [Course Details] Course not found", { courseId });
+    return sendFailure(res, 404, "Course not found");
+  }
 
   const hasPurchased = userId
     ? Boolean(
@@ -100,6 +105,13 @@ export async function getCourseById(req: Request, res: Response) {
         })
       )
     : false;
+
+  console.log("🔍 [Course Details] Purchase check", { 
+    courseId, 
+    userId: userId || "guest", 
+    hasPurchased,
+    lessonsCount: course.lessons.length 
+  });
 
   const progressByLessonId =
     userId && hasPurchased && course.lessons.length
@@ -134,12 +146,21 @@ export async function getCourseById(req: Request, res: Response) {
     };
   });
 
+  console.log("✅ [Course Details] Returning course data", { 
+    courseId, 
+    title: course.title,
+    hasPurchased,
+    lessonsCount: lessons.length 
+  });
+
   return sendSuccess(res, {
+    id: course.id,
     title: course.title,
     description: course.description,
     price: course.price,
     instructor: { name: course.instructorName ?? null },
     hasPurchased,
+    isEnrolled: hasPurchased, // Add isEnrolled for frontend compatibility
     lessons,
   });
 }

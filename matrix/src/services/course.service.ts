@@ -37,8 +37,21 @@ const courseApi = {
 
   // Get course progress (requires auth)
   getCourseProgress: async (courseId: string): Promise<CourseProgress> => {
-    const response = await apiClient.get<CourseProgress>(`/courses/${courseId}/progress`);
-    return response.data;
+    console.log('📊 [Frontend] Fetching course progress', { courseId });
+    try {
+      const response = await apiClient.get<CourseProgress>(`/courses/${courseId}/progress`);
+      console.log('✅ [Frontend] Course progress fetched', { 
+        courseId, 
+        progress: response.data 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ [Frontend] Failed to fetch course progress', {
+        courseId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
   },
 
   // Create checkout session for course purchase

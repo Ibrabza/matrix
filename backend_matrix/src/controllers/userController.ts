@@ -7,6 +7,20 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+export async function getMe(req: Request, res: Response) {
+  const userId = req.user?.id;
+  if (!userId) return sendFailure(res, 401, "Unauthorized");
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, name: true, avatarUrl: true },
+  });
+
+  if (!user) return sendFailure(res, 404, "User not found");
+
+  return sendSuccess(res, user);
+}
+
 export async function updateMe(req: Request, res: Response) {
   const userId = req.user?.id;
   if (!userId) return sendFailure(res, 401, "Unauthorized");

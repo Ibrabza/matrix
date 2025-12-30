@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
-import { ConfigProvider, theme as antdTheme, Spin, Result, Button } from 'antd';
+import { ConfigProvider, theme as antdTheme, Result, Button } from 'antd';
 import { Loader2, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useCourse } from '../../hooks/use-courses';
@@ -105,7 +105,7 @@ const CheckoutPage = observer(() => {
                 {course.title}
               </h1>
               <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                by {course.instructor}
+                by {typeof course.instructor === 'string' ? course.instructor : course.instructor?.name || 'Unknown Instructor'}
               </p>
             </div>
           </div>

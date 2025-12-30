@@ -16,13 +16,32 @@ export async function createCheckoutSession({
   userId,
   course,
 }: CreateCheckoutSessionInput) {
-  const stripe = getStripe();
   const frontendUrl = process.env["FRONTEND_URL"];
   if (!frontendUrl) {
     const err = new Error("Missing FRONTEND_URL");
     (err as Error & { statusCode?: number }).statusCode = 500;
     throw err;
   }
+
+  // Development mode: bypass Stripe if using placeholder key
+  const stripeKey = process.env["STRIPE_SECRET_KEY"];
+  const isDevelopmentMode = !stripeKey || stripeKey.includes("placeholder") || stripeKey.length < 20;
+  
+  if (isDevelopmentMode) {
+    // Return a mock checkout session for development
+    return {
+      id: `cs_dev_${Date.now()}`,
+      url: `${frontendUrl}/course/${course.id}?success=1&dev_mode=true`,
+      payment_status: 'unpaid',
+      mode: 'payment' as const,
+      metadata: {
+        courseId: course.id,
+        userId,
+      },
+    };
+  }
+
+  const stripe = getStripe();
 
   const unitAmount = Math.round(course.price * 100);
   if (!Number.isFinite(unitAmount) || unitAmount <= 0) {
@@ -58,8 +77,8 @@ export async function createCheckoutSession({
       courseId: course.id,
       userId,
     },
-    success_url: `${frontendUrl}/course/${course.id}?success=1`,
-    cancel_url: `${frontendUrl}/course/${course.id}?canceled=1`,
+    success_url: `${frontendUrl}/courses/${course.id}?success=1`,
+    cancel_url: `${frontendUrl}/courses/${course.id}?canceled=1`,
   });
 
   if (!session.url) {

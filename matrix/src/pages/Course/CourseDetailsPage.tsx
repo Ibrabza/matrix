@@ -9,28 +9,26 @@ import {
   Skeleton,
   ConfigProvider,
   theme as antdTheme,
-  Rate,
   message,
 } from 'antd';
 import {
   Play,
   Clock,
-  Users,
   BarChart3,
   CheckCircle2,
   Lock,
   ChevronRight,
   BookOpen,
-  Award,
   Home,
   ShoppingCart,
-  Loader2,
 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useCourse, useInvalidateCourses } from '../../hooks/use-courses';
 import { useBuyCourse } from '../../hooks/use-checkout';
+import { useDirectPurchase } from '../../hooks/use-purchase';
 import { useStore } from '../../stores';
 import type { LessonPreview } from '../../types/api';
+import { getInstructorName, getInstructorInitials } from '../../utils/course';
 
 // Lesson Item Component
 const LessonItem = ({
@@ -107,6 +105,8 @@ const SidebarCard = observer(
     isEnrolled,
     onBuyClick,
     isPurchasing,
+    isDirectPurchasing = false,
+    onDirectBuyClick,
   }: {
     course: {
       thumbnailUrl?: string;
@@ -123,6 +123,8 @@ const SidebarCard = observer(
     isEnrolled: boolean;
     onBuyClick: () => void;
     isPurchasing: boolean;
+    isDirectPurchasing?: boolean;
+    onDirectBuyClick?: () => void;
   }) => {
     const firstLessonId = course.lessons?.[0]?.id;
     const progress = course.progress?.percentage || 0;
@@ -205,17 +207,32 @@ const SidebarCard = observer(
               </Button>
             </Link>
           ) : (
-            <Button
-              type="primary"
-              size="large"
-              block
-              loading={isPurchasing}
-              onClick={onBuyClick}
-              className="!h-12 !font-semibold !shadow-lg !shadow-purple-500/25 hover:!shadow-purple-500/40"
-              icon={isPurchasing ? undefined : <ShoppingCart className="w-5 h-5" />}
-            >
-              {isPurchasing ? 'Processing...' : course.price === 0 ? 'Enroll for Free' : 'Buy Course'}
-            </Button>
+            <div className="space-y-2">
+              <Button
+                type="primary"
+                size="large"
+                block
+                loading={isPurchasing || isDirectPurchasing}
+                onClick={onBuyClick}
+                className="!h-12 !font-semibold !shadow-lg !shadow-purple-500/25 hover:!shadow-purple-500/40"
+                icon={(isPurchasing || isDirectPurchasing) ? undefined : <ShoppingCart className="w-5 h-5" />}
+              >
+                {(isPurchasing || isDirectPurchasing) ? 'Processing...' : course.price === 0 ? 'Enroll for Free' : 'Buy Course'}
+              </Button>
+              
+              {/* Development/Testing: Direct Purchase Button */}
+              {import.meta.env.DEV && course.price > 0 && (
+                <Button
+                  size="small"
+                  block
+                  loading={isDirectPurchasing}
+                  onClick={onDirectBuyClick}
+                  className="!text-xs"
+                >
+                  {isDirectPurchasing ? 'Processing...' : '🧪 Mock Purchase (Dev Only)'}
+                </Button>
+              )}
+            </div>
           )}
 
           {/* Course stats */}
@@ -284,8 +301,9 @@ const CourseDetailsPage = observer(() => {
     refetch,
   } = useCourse(courseId || '', { enabled: !!courseId });
 
-  // Purchase mutation
-  const { mutate: buyCourse, isPending: isPurchasing } = useBuyCourse();
+  // Purchase mutations
+  const { mutate: buyCourse, isPending: isPurchasing } = useBuyCourse(); // Stripe checkout
+  const { mutate: directPurchase, isPending: isDirectPurchasing } = useDirectPurchase(); // Direct purchase (mock/testing)
 
   // Invalidate courses hook
   const invalidateCourses = useInvalidateCourses();
@@ -310,12 +328,15 @@ const CourseDetailsPage = observer(() => {
     }
   }, [searchParams, courseId, refetch, invalidateCourses, setSearchParams]);
 
-  // Handle buy course action
+  // Handle buy course action (Stripe checkout)
   const handleBuyCourse = useCallback(() => {
     if (!courseId) return;
 
+    console.log('🛒 [CourseDetails] Buy button clicked', { courseId });
+
     // Check if user is authenticated
     if (!authStore.isAuthenticated) {
+      console.log('⚠️ [CourseDetails] User not authenticated, redirecting to login');
       // Redirect to login with return URL
       navigate('/login', {
         state: { from: { pathname: `/courses/${courseId}` } },
@@ -323,9 +344,62 @@ const CourseDetailsPage = observer(() => {
       return;
     }
 
-    // User is authenticated - initiate purchase
-    buyCourse(courseId);
+    console.log('✅ [CourseDetails] User authenticated, initiating Stripe checkout');
+
+    // User is authenticated - initiate Stripe purchase
+    buyCourse(courseId, {
+      onError: (error) => {
+        console.error('❌ [CourseDetails] Checkout failed:', error);
+        message.error({
+          content: error.message || 'Failed to create checkout session. Please try again.',
+          duration: 5,
+        });
+      },
+    });
   }, [courseId, authStore.isAuthenticated, navigate, buyCourse]);
+
+  // Handle direct purchase (Mock/Testing - bypasses Stripe)
+  const handleDirectPurchase = useCallback(() => {
+    if (!courseId) return;
+
+    console.log('🛒 [CourseDetails] Direct purchase clicked', { courseId });
+
+    // Check if user is authenticated
+    if (!authStore.isAuthenticated) {
+      console.log('⚠️ [CourseDetails] User not authenticated, redirecting to login');
+      // Redirect to login with return URL
+      navigate('/login', {
+        state: { from: { pathname: `/courses/${courseId}` } },
+      });
+      return;
+    }
+
+    console.log('✅ [CourseDetails] User authenticated, initiating direct purchase');
+
+    // User is authenticated - initiate direct purchase
+    directPurchase(courseId, {
+      onSuccess: (data) => {
+        console.log('🎉 [CourseDetails] Purchase successful!', data);
+        
+        message.success({
+          content: data.message || 'Course purchased successfully!',
+          duration: 5,
+        });
+
+        // Refresh course data to show enrolled state
+        refetch();
+        invalidateCourses.course(courseId);
+      },
+      onError: (error) => {
+        console.error('❌ [CourseDetails] Purchase failed', error);
+        
+        message.error({
+          content: error.message || 'Failed to purchase course',
+          duration: 5,
+        });
+      },
+    });
+  }, [courseId, authStore.isAuthenticated, navigate, directPurchase, refetch, invalidateCourses]);
 
   // Derive isEnrolled from course data
   const isEnrolled = course?.isEnrolled || false;
@@ -450,6 +524,8 @@ const CourseDetailsPage = observer(() => {
                 isEnrolled={isEnrolled}
                 onBuyClick={handleBuyCourse}
                 isPurchasing={isPurchasing}
+                isDirectPurchasing={isDirectPurchasing}
+                onDirectBuyClick={handleDirectPurchase}
               />
             </div>
 
@@ -507,10 +583,7 @@ const CourseDetailsPage = observer(() => {
                         }`}
                       >
                         <span className="text-sm font-medium">
-                          {course.instructor
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')}
+                          {getInstructorInitials(course.instructor)}
                         </span>
                       </div>
                       <div>
@@ -519,7 +592,7 @@ const CourseDetailsPage = observer(() => {
                             isDark ? 'text-white' : 'text-slate-900'
                           }`}
                         >
-                          {course.instructor}
+                          {getInstructorName(course.instructor)}
                         </p>
                         <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                           Instructor
@@ -585,6 +658,8 @@ const CourseDetailsPage = observer(() => {
                   isEnrolled={isEnrolled}
                   onBuyClick={handleBuyCourse}
                   isPurchasing={isPurchasing}
+                  isDirectPurchasing={isDirectPurchasing}
+                  onDirectBuyClick={handleDirectPurchase}
                 />
               </div>
             </div>

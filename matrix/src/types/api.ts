@@ -74,7 +74,7 @@ export interface Course {
   description: string;
   thumbnailUrl?: string;
   price: number;
-  instructor: string;
+  instructor: string | { name: string | null };  // Backend can return object or string
   category: Category;
   categoryId: string;
   lessonsCount: number;

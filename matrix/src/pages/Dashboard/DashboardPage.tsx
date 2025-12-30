@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { Link } from 'react-router-dom';
-import { ConfigProvider, theme as antdTheme, Empty, Button, Progress } from 'antd';
-import { BookOpen, ArrowRight, Play } from 'lucide-react';
+import { ConfigProvider, theme as antdTheme, Empty, Button } from 'antd';
+import { BookOpen, ArrowRight } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useStore } from '../../stores';
 

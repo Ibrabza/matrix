@@ -2,7 +2,7 @@ export interface Course {
   id: string;
   title: string;
   description: string;
-  instructor: string;
+  instructor: string | { name: string | null };
   thumbnailUrl: string;
   category: string;
   progress: number;
