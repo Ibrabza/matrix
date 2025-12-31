@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:5173/
 @api = {{baseUrl}}/api
 
 # Set this after login/register:
