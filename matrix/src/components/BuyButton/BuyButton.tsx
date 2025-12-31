@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 // Types
 // ============================================
 
-export interface BuyButtonProps extends Omit<ButtonProps, 'onClick' | 'loading'> {
+export interface BuyButtonProps extends Omit<ButtonProps, 'onClick' | 'loading' | 'onError'> {
   /** The ID of the course to purchase */
   courseId: string;
   /** Price to display on the button (optional) */
