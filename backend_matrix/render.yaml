@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: matrix-backend
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        generateValue: true  # Render will generate a PostgreSQL database
+      - key: JWT_SECRET
+        generateValue: true  # Render will generate a secure secret
+    healthCheckPath: /api/health
+    autoDeploy: true
